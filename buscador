@@ -1,0 +1,39 @@
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.request.url
+import io.ktor.http.Url
+
+suspend fun main() {
+    // Crear cliente HTTP
+    val client = HttpClient(CIO) {
+        install(JsonFeature)
+    }
+
+    // Definir término de búsqueda
+    val searchTerm = "Kotlin"
+
+    // Crear URL de búsqueda en Wikipedia
+    val url = Url("https://en.wikipedia.org/w/api.php").apply {
+        parameters.append("action", "query")
+        parameters.append("format", "json")
+        parameters.append("list", "search")
+        parameters.append("srsearch", searchTerm)
+    }
+
+    // Realizar búsqueda
+    val response = client.get<String> {
+        url(url)
+    }
+
+    // Mostrar resultados
+    println("Resultados de la búsqueda de '$searchTerm':")
+    response.split("\"title\":").drop(1).forEach {
+        println("- ${it.substring(1, it.indexOf("\","))}")
+    }
+
+    // Cerrar cliente HTTP
+    client.close()
+}
